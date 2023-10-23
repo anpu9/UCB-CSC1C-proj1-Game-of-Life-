@@ -22,17 +22,35 @@
 Color *evaluateOnePixel(Image *image, int row, int col)
 {
 	//YOUR CODE HERE
+    Color **img = image->image;
+    Color *pixel = malloc(sizeof (Color));
+    img += (col + row*(image->cols));
+    int LSB = ((*img)->B)&1;
+    pixel->B = pixel->R = pixel->G = 255*LSB;
+    return pixel;
 }
 
 //Given an image, creates a new image extracting the LSB of the B channel.
 Image *steganography(Image *image)
 {
 	//YOUR CODE HERE
+    Image *newimg = (Image *)malloc(sizeof(Image));
+	newimg->cols = image->cols;
+	newimg->rows = image->rows;
+	newimg->image = (Color**)malloc(sizeof(Color*) * (image->rows) * (image->cols));
+	Color** p = newimg->image;
+	for (int i = 0; i < newimg->rows; i++)
+		for (int j = 0; j < newimg->cols; j++) {
+			*p = evaluateOnePixel(image, i, j);
+			p++;
+		}
+	return newimg;
 }
 
+
 /*
-Loads a file of ppm P3 format from a file, and prints to stdout (e.g. with printf) a new image, 
-where each pixel is black if the LSB of the B channel is 0, 
+Loads a file of ppm P3 format from a file, and prints to stdout (e.g. with printf) a new image,
+where each pixel is black if the LSB of the B channel is 0,
 and white if the LSB of the B channel is 1.
 
 argc stores the number of arguments.
@@ -46,4 +64,14 @@ Make sure to free all memory before returning!
 int main(int argc, char **argv)
 {
 	//YOUR CODE HERE
+    if (argc != 2) {
+        printf("Usage: %s <colorfile>\n", argv[0]);
+        return 1;
+    }
+    Image* img = readData(argv[1]);
+    Image* steImage = steganography(img);
+    writeData(steImage);
+    freeImage(img);
+    freeImage(steImage);
+    return 0;
 }
